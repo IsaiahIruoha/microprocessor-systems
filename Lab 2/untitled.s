@@ -120,7 +120,7 @@ UpdateHexDisplay:
 		stw	 r2, 4(sp)
 		stw	 r3, 0(sp)
 		
-		movia	r2, HEX_DISPLAY
+		movia	r2, HEX_DISPLAYS
 
 uhd_if:
 		movi	r3, 0x7F
@@ -152,6 +152,22 @@ Init:
 		stw		r2, 4(sp)
 		stw		r3, 0(sp)
 		
+		movia 	r2, TIMER_START_LO 	# set start_lo
+		movia	r3, 0x017D7840
+		srli	r3, r3, 1
+		stwio	r3, 0(r2)		
+		
+		movia 	r2, TIMER_START_HI 	# set start_hi
+		srli	r3, r3, 16
+		stwio	r3, 0(r2)	
+		
+		movia	r2, TIMER_CONTROL
+		movi	r3, 7 			# 7 = 0111_2; not stop, start, continuous, interrupt enable
+		stwio	r3, 0(r2)
+		
+		movia	r2, TIMER_STATUS	# set timer status to 0
+		stwio	r0, 0(r2)
+		
 		movia	r2, HEX_DISPLAYS 	# Inititally turn on left most 8
 		movi	r3, 0x7F
 		slli	r3, r3, 24
@@ -165,11 +181,12 @@ Init:
         movia r2, BUTTON1
         stwio r2, 0(r3)        # Use stwio to set button 1 to trigger interrupts
 
-        movia r2, BUTTON1
+        movia r2, 0x3
         wrctl ienable, r2      # Enable interrupts for button 1
 
         movia r2, 1
         wrctl status, r2       # Enable global interrupts
+		
 		ldw		r2, 4(sp)
 		ldw		r3, 0(sp)
 		addi	sp, sp, 8
@@ -189,7 +206,8 @@ Init:
 # Interrupt Service Routine (ISR)
 isr:
 	# Save registers (except ea which we will adjust)
-	subi	sp, sp, 16	
+	subi	sp, sp, 20
+	stw		ra, 16(sp)
 	stw		r5, 12(sp)	
 	stw		r4, 8(sp)
 	stw		r3, 4(sp)	
@@ -200,8 +218,9 @@ isr:
 
         movia r5, BUTTON1
         and r4, r4, r5          # Check if button 1 caused the interrupt
-        beq r4, r0, isr_exit    # Exit if no interrupt from button 1
-
+        beq r4, r0, TESTTMR    # Exit if no interrupt from button 1
+		
+		button_code:
         # Toggle the right-most LED
         movia r3, LEDS          # Load the address of LEDS into r3
         ldwio r2, 0(r3)         # Load the current LED value using ldwio
@@ -212,13 +231,27 @@ isr:
         movia r3, BUTTON_EDGE   # Load the address of BUTTON_EDGE into r3
         movia r2, BUTTON1       # Load the bit pattern for button 1
         stwio r2, 0(r3)         # Clear the button interrupt using stwio
+		
+TESTTMR:
+		rdctl	r4, ipending
+		movia r5, 0x2
+		and r4, r4, r5
+		beq	r4, r0, isr_exit
+		
+		# Clear the timer interrupt
+        movia r3, TIMER_STATUS  
+        stwio r0, 0(r3)         
+		
+		call	UpdateHexDisplay
+
 
 isr_exit:	
+	ldw		ra, 16(sp)
 	ldw		r5, 12(sp)	
 	ldw		r4, 8(sp)
 	ldw		r3, 4(sp)	
 	ldw		r2, 0(sp)
-	addi	sp, sp, 16
+	addi	sp, sp, 20
     	eret                    # Return from interrupt
 
 #-----------------------------------------------------------------------------
