@@ -116,15 +116,18 @@ ps_endloop:
         ret
 		
 UpdateHexDisplay:
-		subi sp, sp, 8
+		subi sp, sp, 12
+		stw	 r4, 8(sp)
 		stw	 r2, 4(sp)
 		stw	 r3, 0(sp)
 		
 		movia	r2, HEX_DISPLAYS
 
 uhd_if:
+		ldwio	r4, 0(r2)
 		movi	r3, 0x7F
-		bne 	r2, r3, uhd_else
+#		srli	r4, r4, 24
+		bne 	r4, r3, uhd_else
 		slli	r3, r3, 24
 		br		uhd_end_if
 
@@ -136,7 +139,8 @@ uhd_end_if:
 		
 		ldw		r3, 0(sp)
 		ldw		r2, 4(sp)
-		addi	sp, sp, 8
+		ldw		r4, 8(sp)
+		addi	sp, sp, 12
 		ret	
 	
 #-----------------------------------------------------------------------------
@@ -152,13 +156,13 @@ Init:
 		stw		r2, 4(sp)
 		stw		r3, 0(sp)
 		
-		movia 	r2, TIMER_START_LO 	# set start_lo
-		movia	r3, 0x017D7840
-		srli	r3, r3, 1
+		movia 	r2, TIMER_START_HI 	# set start_lo
+		movia	r3, 0x017D
+#		srli	r3, r3, 1
 		stwio	r3, 0(r2)		
 		
-		movia 	r2, TIMER_START_HI 	# set start_hi
-		srli	r3, r3, 16
+		movia 	r2, TIMER_START_LO 	# set start_hi
+		movia	r3, 0x7840
 		stwio	r3, 0(r2)	
 		
 		movia	r2, TIMER_CONTROL
@@ -231,6 +235,7 @@ isr:
         movia r3, BUTTON_EDGE   # Load the address of BUTTON_EDGE into r3
         movia r2, BUTTON1       # Load the bit pattern for button 1
         stwio r2, 0(r3)         # Clear the button interrupt using stwio
+
 		
 TESTTMR:
 		rdctl	r4, ipending
@@ -265,4 +270,6 @@ COUNT:  .word 0
 TEXT:   .asciz "ELEC 371 Lab 2 by Isaiah Iruoha and Alex Morra \n  "
 
 	.end
+	
+	
 	
