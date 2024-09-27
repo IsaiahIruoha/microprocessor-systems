@@ -126,13 +126,12 @@ UpdateHexDisplay:
 uhd_if:
 		ldwio	r4, 0(r2)
 		movi	r3, 0x7F
-#		srli	r4, r4, 24
 		bne 	r4, r3, uhd_else
 		slli	r3, r3, 24
 		br		uhd_end_if
 
 uhd_else:
-		srli	r3, r3, 8
+		srli	r3, r4, 8
 
 uhd_end_if:
 		stwio	r3, 0(r2)
@@ -174,7 +173,7 @@ Init:
 		
 		movia	r2, HEX_DISPLAYS 	# Inititally turn on left most 8
 		movi	r3, 0x7F
-		slli	r3, r3, 24
+#		slli	r3, r3, 24
 		stwio	r3, 0(r2)
 	
         movia r3, COUNT
@@ -235,11 +234,12 @@ isr:
         movia r3, BUTTON_EDGE   # Load the address of BUTTON_EDGE into r3
         movia r2, BUTTON1       # Load the bit pattern for button 1
         stwio r2, 0(r3)         # Clear the button interrupt using stwio
+		br 	isr_exit
 
 		
 TESTTMR:
 		rdctl	r4, ipending
-		movia r5, 0x2
+		movia r5, 0x1
 		and r4, r4, r5
 		beq	r4, r0, isr_exit
 		
