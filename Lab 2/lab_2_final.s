@@ -9,7 +9,6 @@
 #-----------------------------------------------------------------------------
 
         .text
-
         .global _start
 
 #-----------------------------------------------------------------------------
@@ -35,20 +34,20 @@
         .equ LEDS, 0x10000010
 		
 # data register for HEX displays
-		.equ HEX_DISPLAYS, 0x10000020
+	.equ HEX_DISPLAYS, 0x10000020
 		
 # timer symbols
-		.equ TIMER_STATUS, 0x10002000
-		.equ TIMER_CONTROL, 0x10002004
-		.equ TIMER_START_LO, 0x10002008
-		.equ TIMER_START_HI, 0x1000200C
+	.equ TIMER_STATUS, 0x10002000
+	.equ TIMER_CONTROL, 0x10002004
+	.equ TIMER_START_LO, 0x10002008
+	.equ TIMER_START_HI, 0x1000200C
 
         .org 0x0000 # this is the _reset_ address 
 
 _start:
         br main # branch to actual start of main() routine 
-
-.org 0x0020
+	
+	.org 0x0020
         br isr   # Branch to ISR on interrupt
 
 #-----------------------------------------------------------------------------
@@ -61,20 +60,16 @@ _start:
 
 main:
         movia sp, 0x7FFFFC    # Initialize stack pointer
-
         call Init             # Initialize interrupts and I/O
-
         movia r2, TEXT
         call PrintString       # Print the string
         br main_loop           # Jump to main loop
 
 main_loop:
-
         movia r3, COUNT        # Load the address of COUNT into r3
         ldw r2, 0(r3)          # Load current value of COUNT
         addi r2, r2, 1         # Increment COUNT
         stw r2, 0(r3)          # Store incremented value back to COUNT
-
         br main_loop           # Infinite loop
 
 PrintChar:
@@ -116,31 +111,29 @@ ps_endloop:
         ret
 		
 UpdateHexDisplay:
-		subi sp, sp, 12
-		stw	 r4, 8(sp)
-		stw	 r2, 4(sp)
-		stw	 r3, 0(sp)
-		
-		movia	r2, HEX_DISPLAYS
+	subi sp, sp, 12
+	stw	 r4, 8(sp)
+	stw	 r2, 4(sp)
+	stw	 r3, 0(sp)
+	movia	r2, HEX_DISPLAYS
 
 uhd_if:
-		ldwio	r4, 0(r2)
-		movi	r3, 0x7F
-		bne 	r4, r3, uhd_else
-		slli	r3, r3, 24
-		br		uhd_end_if
+	ldwio	r4, 0(r2)
+	movi	r3, 0x7F
+	bne 	r4, r3, uhd_else
+	slli	r3, r3, 24
+	br		uhd_end_if
 
 uhd_else:
-		srli	r3, r4, 8
+	srli	r3, r4, 8
 
 uhd_end_if:
-		stwio	r3, 0(r2)
-		
-		ldw		r3, 0(sp)
-		ldw		r2, 4(sp)
-		ldw		r4, 8(sp)
-		addi	sp, sp, 12
-		ret	
+	stwio	r3, 0(r2)
+	ldw		r3, 0(sp)
+	ldw		r2, 4(sp)
+	ldw		r4, 8(sp)
+	addi	sp, sp, 12
+	ret	
 	
 #-----------------------------------------------------------------------------
 # This subroutine should encompass preparation of I/O registers as well as
@@ -151,48 +144,46 @@ uhd_end_if:
 # Initialize Interrupts and I/O
 
 Init:
-		subi	sp, sp, 8 # make it modular -- save/restore registers
-		stw		r2, 4(sp)
-		stw		r3, 0(sp)
+	subi	sp, sp, 8 # make it modular -- save/restore registers
+	stw	r2, 4(sp)
+	stw	r3, 0(sp)
 		
-		movia 	r2, TIMER_START_HI 	# set start_lo
-		movia	r3, 0x017D
-#		srli	r3, r3, 1
-		stwio	r3, 0(r2)		
+	movia 	r2, TIMER_START_HI 	# set start_lo
+	movia	r3, 0x017D
+	stwio	r3, 0(r2)		
 		
-		movia 	r2, TIMER_START_LO 	# set start_hi
-		movia	r3, 0x7840
-		stwio	r3, 0(r2)	
+	movia 	r2, TIMER_START_LO 	# set start_hi
+	movia	r3, 0x7840
+	stwio	r3, 0(r2)	
 		
-		movia	r2, TIMER_CONTROL
-		movi	r3, 7 			# 7 = 0111_2; not stop, start, continuous, interrupt enable
-		stwio	r3, 0(r2)
+	movia	r2, TIMER_CONTROL
+	movi	r3, 7 			# 7 = 0111_2; not stop, start, continuous, interrupt enable
+	stwio	r3, 0(r2)
 		
-		movia	r2, TIMER_STATUS	# set timer status to 0
-		stwio	r0, 0(r2)
+	movia	r2, TIMER_STATUS	# set timer status to 0
+	stwio	r0, 0(r2)
 		
-		movia	r2, HEX_DISPLAYS 	# Inititally turn on left most 8
-		movi	r3, 0x7F
-#		slli	r3, r3, 24
-		stwio	r3, 0(r2)
+	movia	r2, HEX_DISPLAYS 	# Inititally turn on left most 8
+	movi	r3, 0x7F
+	stwio	r3, 0(r2)
 	
-        movia r3, COUNT
-        movia r2, 0
-        stw r2, 0(r3)          # Initialize COUNT to 0
+        movia	r3, COUNT
+        movia	r2, 0
+        stw	r2, 0(r3)          # Initialize COUNT to 0
 
-        movia r3, BUTTON_MASK  # Load the address of BUTTON_MASK into r3
-        movia r2, BUTTON1
-        stwio r2, 0(r3)        # Use stwio to set button 1 to trigger interrupts
+        movia	r3, BUTTON_MASK  # Load the address of BUTTON_MASK into r3
+        movia	r2, BUTTON1
+        stwio	r2, 0(r3)        # Use stwio to set button 1 to trigger interrupts
 
-        movia r2, 0x3
-        wrctl ienable, r2      # Enable interrupts for button 1
+        movia	r2, 0x3
+        wrctl	ienable, r2      # Enable interrupts for button 1
 
-        movia r2, 1
-        wrctl status, r2       # Enable global interrupts
+        movia	r2, 1
+        wrctl	status, r2       # Enable global interrupts
 		
-		ldw		r2, 4(sp)
-		ldw		r3, 0(sp)
-		addi	sp, sp, 8
+	ldw	r2, 4(sp)
+	ldw	r3, 0(sp)
+	addi	sp, sp, 8
         ret
 
 #-----------------------------------------------------------------------------
@@ -210,52 +201,52 @@ Init:
 isr:
 	# Save registers (except ea which we will adjust)
 	subi	sp, sp, 20
-	stw		ra, 16(sp)
-	stw		r5, 12(sp)	
-	stw		r4, 8(sp)
-	stw		r3, 4(sp)	
-	stw		r2, 0(sp)
-        subi ea, ea, 4         # Adjust ea for hardware interrupts
+	stw	ra, 16(sp)
+	stw	r5, 12(sp)	
+	stw	r4, 8(sp)
+	stw	r3, 4(sp)	
+	stw	r2, 0(sp)
+        subi	ea, ea, 4         # Adjust ea for hardware interrupts
 
         rdctl r4, ipending      # Read ipending register
 
-        movia r5, BUTTON1
-        and r4, r4, r5          # Check if button 1 caused the interrupt
-        beq r4, r0, TESTTMR    # Exit if no interrupt from button 1
+        movia	r5, BUTTON1
+        and	r4, r4, r5          # Check if button 1 caused the interrupt
+        beq	r4, r0, TESTTMR    # Exit if no interrupt from button 1
 		
 		button_code:
         # Toggle the right-most LED
-        movia r3, LEDS          # Load the address of LEDS into r3
-        ldwio r2, 0(r3)         # Load the current LED value using ldwio
-        xori r2, r2, 1          # Toggle the right-most LED (bit 0)
-        stwio r2, 0(r3)         # Store the updated LED value back using stwio
+        movia	r3, LEDS          # Load the address of LEDS into r3
+        ldwio	r2, 0(r3)         # Load the current LED value using ldwio
+        xori	r2, r2, 1          # Toggle the right-most LED (bit 0)
+        stwio	r2, 0(r3)         # Store the updated LED value back using stwio
 
         # Clear the button interrupt
-        movia r3, BUTTON_EDGE   # Load the address of BUTTON_EDGE into r3
-        movia r2, BUTTON1       # Load the bit pattern for button 1
-        stwio r2, 0(r3)         # Clear the button interrupt using stwio
+        movia	r3, BUTTON_EDGE   # Load the address of BUTTON_EDGE into r3
+        movia	r2, BUTTON1       # Load the bit pattern for button 1
+        stwio	r2, 0(r3)         # Clear the button interrupt using stwio
 		br 	isr_exit
 
 		
 TESTTMR:
-		rdctl	r4, ipending
-		movia r5, 0x1
-		and r4, r4, r5
-		beq	r4, r0, isr_exit
+	rdctl	r4, ipending
+	movia	r5, 0x1
+	and	r4, r4, r5
+	beq	r4, r0, isr_exit
 		
-		# Clear the timer interrupt
-        movia r3, TIMER_STATUS  
-        stwio r0, 0(r3)         
+	# Clear the timer interrupt
+        movia	r3, TIMER_STATUS  
+        stwio	r0, 0(r3)         
 		
-		call	UpdateHexDisplay
+	call	UpdateHexDisplay
 
 
 isr_exit:	
-	ldw		ra, 16(sp)
-	ldw		r5, 12(sp)	
-	ldw		r4, 8(sp)
-	ldw		r3, 4(sp)	
-	ldw		r2, 0(sp)
+	ldw	ra, 16(sp)
+	ldw	r5, 12(sp)	
+	ldw	r4, 8(sp)
+	ldw	r3, 4(sp)	
+	ldw	r2, 0(sp)
 	addi	sp, sp, 20
     	eret                    # Return from interrupt
 
@@ -268,8 +259,4 @@ isr_exit:
 
 COUNT:  .word 0
 TEXT:   .asciz "ELEC 371 Lab 2 by Isaiah Iruoha and Alex Morra \n  "
-
 	.end
-	
-	
-	
