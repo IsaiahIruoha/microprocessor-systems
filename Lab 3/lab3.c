@@ -153,7 +153,7 @@
 #define BUTTON_MASK (volatile unsigned int*) 0x10000058
 #define BUTTON_EDGE (volatile unsigned int*) 0x1000005C
 
-#define BUTTON1 0x2
+#define BUTTON1 0x6
 
 #define HEX_DISPLAYS (volatile unsigned int*) 0x10000020
 
@@ -202,7 +202,7 @@ void Init (void)
    *TIMER_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
 
 	/* set up ienable */
-   NIOS2_WRITE_IENABLE(0x7);
+   NIOS2_WRITE_IENABLE(0x3);
 
 	/* enable global recognition of interrupts in procr. status reg. */
    NIOS2_WRITE_STATUS(1);
