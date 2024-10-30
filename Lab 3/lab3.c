@@ -150,6 +150,13 @@
 /* place additional #define macros here */
 #define TIMER_INTERVAL 50000000
 
+#define BUTTON_MASK (volatile unsigned int*) 0x10000058
+#define BUTTON_EDGE (volatile unsigned int*) 0x1000005C
+
+#define BUTTON1 0x2
+
+#define HEX_DISPLAYS (volatile unsigned int*) 0x10000020
+
 /* define global program variables here */
 unsigned int timer_count = 0;
 
@@ -169,6 +176,15 @@ void interrupt_handler(void)
    
       *LEDS ^= 0xFF;
    }
+
+   if (ipending & BUTTON1){
+      
+      for (int i = 0; i < 6; ++i) {
+            *(HEX_DISPLAYS + i) ^= 0xFF;
+        }
+
+      *BUTTON_EDGE = BUTTON1;
+   }
         
 }
 
@@ -181,10 +197,12 @@ void Init (void)
    *TIMER_START_LO = TIMER_INTERVAL & 0xFFFF;
    *TIMER_START_HI = (TIMER_INTERVAL >> 16) & 0xFFFF;
 
+   *BUTTON_MASK = BUTTON1;
+
    *TIMER_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
 
 	/* set up ienable */
-   NIOS2_WRITE_IENABLE(0x1);
+   NIOS2_WRITE_IENABLE(0x7);
 
 	/* enable global recognition of interrupts in procr. status reg. */
    NIOS2_WRITE_STATUS(1);
