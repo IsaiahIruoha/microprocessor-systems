@@ -170,15 +170,17 @@
 /*-----------------------------------------------------------------*/
 
 /* place additional #define macros here */
-#define TIMER1_INTERVAL 100000000
+#define TIMER1_INTERVAL 50000000
 
-#define TIMER2_INTERVAL 25000000
+#define TIMER2_INTERVAL 12500000
 
-#define TIMER3_INTERVAL 50000000
+#define TIMER3_INTERVAL 25000000
 
 #define HEX_DISPLAYS (volatile unsigned int*) 0x10000020
 
 #define JTAG_UART_DATA (volatile unsigned int *) 0x10001000
+
+#define SWITCHES_DATA (volatile unsigned int *) 0x10000040
 
 /* define global program variables here */
 unsigned int timer_count = 0;
@@ -190,6 +192,11 @@ unsigned int hex_table[] =
 0x3F, 0x06, 0x5B, 0x4F,
 };
 
+unsigned int letter_table[] = 
+{
+0x77, 0x7C, 0x39, 0x5E
+};
+
 void interrupt_handler(void)
 {
 	unsigned int ipending;
@@ -198,42 +205,44 @@ void interrupt_handler(void)
    ipending = NIOS2_READ_IPENDING();
 
 	/* do one or more checks for different sources using ipending value */
-   if (ipending & (1<<13)){
+   if (ipending & (1<<14)){
       
       /* remember to clear interrupt sources */
       *TIMER1_STATUS = TIMER_TO_BIT;
 	  
 	  if(flag2 == 0){
-		  *LEDS ^= 0x700;
+		  *LEDS = 0x380;
 		  flag2 = 1;
 	  }else{
-		  *LEDS ^= 0x7;
+		  *LEDS = 0x007;
 		  flag2 = 0;
 	  }
    }
    
 
-   if (ipending & (1<<14)){
+   if (ipending & (1<<15)){
       
       *TIMER2_STATUS = TIMER_TO_BIT;
-
+	  
+	 if (*SWITCHES_DATA & (1<<2)){
+		*HEX_DISPLAYS = letter_table[timer_count % 3];
+	    timer_count++;		
+	 } else {
 	  *HEX_DISPLAYS = hex_table[timer_count % 3];
 	  timer_count++;
-
+	 }
    }
 
-   if (ipending & (1<<15)){
+   if (ipending & (1<<16)){
       
 
       *TIMER3_STATUS = TIMER_TO_BIT;
    
 	  if(flag == 0){
 		  *JTAG_UART_DATA = '|';
-		  *JTAG_UART_DATA = '\n';
 		  flag = 1;
 	  }else{
 		  *JTAG_UART_DATA = '-';
-		  *JTAG_UART_DATA = '\n';
 		  flag = 0;
 	  }
    }
@@ -262,7 +271,7 @@ void Init (void)
    *TIMER3_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
 
 	/* set up ienable */
-   NIOS2_WRITE_IENABLE((1 << 13) | (1<<14) | (1<<15));
+   NIOS2_WRITE_IENABLE((1 << 16) | (1<<14) | (1<<15));
 
 	/* enable global recognition of interrupts in procr. status reg. */
    NIOS2_WRITE_STATUS(1);
@@ -270,7 +279,7 @@ void Init (void)
 
 
 /* place additional functions here */
-
+int temp = 0;
 
 int main (void)
 {
@@ -279,6 +288,7 @@ int main (void)
 	while (1)
 	{
 		/* fill in body of infinite loop */;
+		temp++;
 	}
 
 	return 0;	/* never reached, but main() must return a value */
