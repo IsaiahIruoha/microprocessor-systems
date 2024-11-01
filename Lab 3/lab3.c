@@ -92,7 +92,6 @@
 
 
 
-
 /*-----------------------------------------------------------------*/
 
 #ifndef _TIMER_H_
@@ -101,24 +100,47 @@
 
 /* define pointer macros for accessing the timer interface registers */
 
-#define TIMER_STATUS	((volatile unsigned int *) 0x10002000)
+#define TIMER1_STATUS	((volatile unsigned int *) 0x10004020)
 
-#define TIMER_CONTROL	((volatile unsigned int *) 0x10002004)
+#define TIMER1_CONTROL	((volatile unsigned int *) 0x10004024)
 
-#define TIMER_START_LO	((volatile unsigned int *) 0x10002008)
+#define TIMER1_START_LO	((volatile unsigned int *) 0x10004028)
 
-#define TIMER_START_HI	((volatile unsigned int *) 0x1000200C)
+#define TIMER1_START_HI	((volatile unsigned int *) 0x1000402C)
 
-#define TIMER_SNAP_LO	((volatile unsigned int *) 0x10002010)
+#define TIMER1_SNAP_LO	((volatile unsigned int *) 0x10004030)
 
-#define TIMER_SNAP_HI	((volatile unsigned int *) 0x10002014)
+#define TIMER1_SNAP_HI	((volatile unsigned int *) 0x10004034)
 
+
+#define TIMER2_STATUS	((volatile unsigned int *) 0x10004040)
+
+#define TIMER2_CONTROL	((volatile unsigned int *) 0x10004044)
+
+#define TIMER2_START_LO	((volatile unsigned int *) 0x10004048)
+
+#define TIMER2_START_HI	((volatile unsigned int *) 0x1000404C)
+
+#define TIMER2_SNAP_LO	((volatile unsigned int *) 0x10004050)
+
+#define TIMER2_SNAP_HI	((volatile unsigned int *) 0x10004054)
+
+
+#define TIMER3_STATUS	((volatile unsigned int *) 0x10004060)
+
+#define TIMER3_CONTROL	((volatile unsigned int *) 0x10004064)
+
+#define TIMER3_START_LO	((volatile unsigned int *) 0x10004068)
+
+#define TIMER3_START_HI	((volatile unsigned int *) 0x1000406C)
+
+#define TIMER3_SNAP_LO	((volatile unsigned int *) 0x10004070)
+
+#define TIMER3_SNAP_HI	((volatile unsigned int *) 0x10004074)
 
 /* define a bit pattern reflecting the position of the timeout (TO) bit
    in the timer status register */
-
 #define TIMER_TO_BIT 0x1
-
 
 #endif /* _TIMER_H_ */
 
@@ -148,44 +170,76 @@
 /*-----------------------------------------------------------------*/
 
 /* place additional #define macros here */
-#define TIMER_INTERVAL 50000000
+#define TIMER1_INTERVAL 100000000
 
-#define BUTTON_MASK (volatile unsigned int*) 0x10000058
-#define BUTTON_EDGE (volatile unsigned int*) 0x1000005C
+#define TIMER2_INTERVAL 25000000
 
-#define BUTTON1 0x6
+#define TIMER3_INTERVAL 50000000
 
 #define HEX_DISPLAYS (volatile unsigned int*) 0x10000020
 
+#define JTAG_UART_DATA (volatile unsigned int *) 0x10001000
+
 /* define global program variables here */
 unsigned int timer_count = 0;
+int flag = 0;
+int flag2 = 0;
+
+unsigned int hex_table[] =
+{
+0x3F, 0x06, 0x5B, 0x4F,
+};
 
 void interrupt_handler(void)
 {
 	unsigned int ipending;
 
-
 	/* read current value in ipending register */
    ipending = NIOS2_READ_IPENDING();
 
 	/* do one or more checks for different sources using ipending value */
-   if (ipending & TIMER_TO_BIT){
+   if (ipending & 1<<13){
       
       /* remember to clear interrupt sources */
-      *TIMER_STATUS = 0;
-   
-      *LEDS ^= 0xFF;
-   }
-
-   if (ipending & BUTTON1){
+      *TIMER1_STATUS &= TIMER_TO_BIT;
+	  
+	  
+	  
+	  if(flag2 = 0){
+		  *LEDS ^= 0x700;
+		  flag2 = 1;
+	  }else{
+		  *LEDS ^= 0x7;
+		  flag2 = 0;
+	  }
       
-      for (int i = 0; i < 6; ++i) {
-            *(HEX_DISPLAYS + i) ^= 0xFF;
-        }
-
-      *BUTTON_EDGE = BUTTON1;
    }
-        
+   
+
+   if (ipending & 1<<14){
+      
+      *TIMER2_STATUS &= 0;
+   
+	  *HEX_DISPLAYS = hex_table[timer_count % 3];
+	  timer_count++;
+   }
+
+   if (ipending & 1<<15){
+      
+
+      *TIMER3_STATUS &= TIMER_TO_BIT;
+   
+	  if(flag == 0){
+		  *JTAG_UART_DATA = '|';
+		  *JTAG_UART_DATA = '\n';
+		  flag = 1;
+	  }else{
+		  *JTAG_UART_DATA = '-';
+		  *JTAG_UART_DATA = '\n';
+		  flag = 0;
+	  }
+   }
+
 }
 
 void Init (void)
@@ -194,15 +248,21 @@ void Init (void)
    timer_count = 0;
 
 	/* set up each hardware interface */
-   *TIMER_START_LO = TIMER_INTERVAL & 0xFFFF;
-   *TIMER_START_HI = (TIMER_INTERVAL >> 16) & 0xFFFF;
+   *TIMER1_START_LO = TIMER1_INTERVAL & 0xFFFF;
+   *TIMER1_START_HI = (TIMER1_INTERVAL >> 16) & 0xFFFF;
+   
+   *TIMER2_START_LO = TIMER2_INTERVAL & 0xFFFF;
+   *TIMER2_START_HI = (TIMER2_INTERVAL >> 16) & 0xFFFF;
+   
+   *TIMER3_START_LO = TIMER3_INTERVAL & 0xFFFF;
+   *TIMER3_START_HI = (TIMER3_INTERVAL >> 16) & 0xFFFF;
 
-   *BUTTON_MASK = BUTTON1;
-
-   *TIMER_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
+   *TIMER1_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
+   *TIMER2_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
+   *TIMER3_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
 
 	/* set up ienable */
-   NIOS2_WRITE_IENABLE(0x3);
+   NIOS2_WRITE_IENABLE(0xE000);
 
 	/* enable global recognition of interrupts in procr. status reg. */
    NIOS2_WRITE_STATUS(1);
