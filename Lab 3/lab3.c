@@ -198,36 +198,34 @@ void interrupt_handler(void)
    ipending = NIOS2_READ_IPENDING();
 
 	/* do one or more checks for different sources using ipending value */
-   if (ipending & 1<<13){
+   if (ipending & (1<<13)){
       
       /* remember to clear interrupt sources */
-      *TIMER1_STATUS &= TIMER_TO_BIT;
+      *TIMER1_STATUS = TIMER_TO_BIT;
 	  
-	  
-	  
-	  if(flag2 = 0){
+	  if(flag2 == 0){
 		  *LEDS ^= 0x700;
 		  flag2 = 1;
 	  }else{
 		  *LEDS ^= 0x7;
 		  flag2 = 0;
 	  }
-      
    }
    
 
-   if (ipending & 1<<14){
+   if (ipending & (1<<14)){
       
-      *TIMER2_STATUS &= 0;
-   
+      *TIMER2_STATUS = TIMER_TO_BIT;
+
 	  *HEX_DISPLAYS = hex_table[timer_count % 3];
 	  timer_count++;
+
    }
 
-   if (ipending & 1<<15){
+   if (ipending & (1<<15)){
       
 
-      *TIMER3_STATUS &= TIMER_TO_BIT;
+      *TIMER3_STATUS = TIMER_TO_BIT;
    
 	  if(flag == 0){
 		  *JTAG_UART_DATA = '|';
@@ -246,6 +244,8 @@ void Init (void)
 {
 	/* initialize software variables */
    timer_count = 0;
+   flag = 0;
+   flag2 = 0;
 
 	/* set up each hardware interface */
    *TIMER1_START_LO = TIMER1_INTERVAL & 0xFFFF;
@@ -262,7 +262,7 @@ void Init (void)
    *TIMER3_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
 
 	/* set up ienable */
-   NIOS2_WRITE_IENABLE(0xE000);
+   NIOS2_WRITE_IENABLE((1 << 13) | (1<<14) | (1<<15));
 
 	/* enable global recognition of interrupts in procr. status reg. */
    NIOS2_WRITE_STATUS(1);
