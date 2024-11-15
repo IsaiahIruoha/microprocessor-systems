@@ -1,5 +1,8 @@
 #include "nios2_control.h"
 #include "chario.h"
+#include "timer.h"
+#include "adc.h"
+#include "leds.h" 
 
 /* place additional #define macros here */
 #define TIMER1_STATUS	((volatile unsigned int *) 0x10004020)
@@ -84,6 +87,7 @@ void interrupt_handler(void)
 
 	
 	/* remember to clear interrupt sources */
+	
 }
 
 /*-----------------------------------------------------------------*/
@@ -103,7 +107,7 @@ void Init (void)
 	*TIMER1_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
     *TIMER2_CONTROL = 0x7; /* start timer, enable interrupts, continuous mode */
 	
-	InitADC(0x2, 0x2);
+	InitADC(2, 2);
 	/* set up ienable */
 	NIOS2_WRITE_IENABLE((1<<14) | (1<<15));
 
@@ -125,7 +129,8 @@ int main (void)
 		leftmost = 0;
 	}
 	
-	PrintString("/nELEC 371 Lab 4 by Alex Morra, Isaiah Iruoha, Keven Li\n");
+	PrintChar('\n');
+	PrintString("ELEC 371 Lab 4 by Alex Morra, Isaiah Iruoha, Keven Li\n");
 	PrintString("\nA/D result divided by 16: 0x?");
 	
 	while (1)
@@ -142,9 +147,10 @@ int main (void)
 		}
 		
 		if (timer_flag_1){
-			unsigned int adc_value = ADConvert();
+			unsigned int adc_value;
+			adc_value = ADConvert();
 			adc_value = adc_value / 16;
-			PrintChar('\b');
+			PrintChar(8);
 			PrintHexDigit(adc_value);
 			timer_flag_1 = 0;
 		}
