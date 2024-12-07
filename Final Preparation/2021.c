@@ -15,7 +15,7 @@
 unsigned int input_data, timer1_flag, input_sum, input_avg, input_count, timer0_count; 
 
 void Init(void) {
-    input_data, timer1_flag, input_sum, input_avg, input_count, timer0_count = 0,0,0,0,0,0;
+    input_data = timer1_flag = input_sum = input_avg = input_count = timer0_count = 0;
     *TIMER0_START_HI = (6250000 >> 16); 
     *TIMER0_START_LO = (6250000 & 0xFFFF);
     *TIMER0_CONTROL = 0x7; 

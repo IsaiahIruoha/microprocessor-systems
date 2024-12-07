@@ -7,15 +7,15 @@
 #define TIMER1_CONTROL ((volatile unsigned int *) 0x00005104)
 #define TIMER1_START_LO ((volatile unsigned int *) 0x00005108)
 #define TIMER1_START_HI ((volatile unsigned int *) 0x0000510C)
-#define INPUT_DATA ((volatile unsigned int *) 0x00006700)
-#define OUTPUT_DATA ((volatile unsigned int *) 0x00006800)
+#define INPUT_DATA ((volatile unsigned int *) 0x00005A00)
+#define OUTPUT_DATA ((volatile unsigned int *) 0x00005C00)
 #define JTAG_UART_DATA ((volatile unsigned int *) 0x00006A00)
 #define JTAG_UART_STATUS ((volatile unsigned int *) 0x00006A04)
 
 unsigned int timer1_flag, greater_count, less_count, equal_count, timer0_count;
 
 void Init(void) {
-    timer1_flag, greater_count, less_count, equal_count, timer0_count = 0,0,0,0,0; 
+    timer1_flag = greater_count = less_count = equal_count = timer0_count = 0; 
     *TIMER0_STATUS = 0x0;
     *TIMER0_CONTROL = 0x7; 
     *TIMER0_START_HI = (6250000 >> 16);
@@ -35,7 +35,7 @@ void PrintChar(unsigned int ch) {
         st = *JTAG_UART_STATUS;
         st = (st & 0xFFFF0000); 
     } while (st == 0); 
-    *JTAG_UART_STATUS = ch; 
+    *JTAG_UART_DATA = ch; 
 }
 
 void HandleTimer0(void){
@@ -79,7 +79,8 @@ int main(void){
             }
             PrintChar('\n');   
             store_lower_output = (*OUTPUT_DATA & 0x00FF); 
-            *OUTPUT_DATA = (store_lower_output | current_data); 
+            *OUTPUT_DATA = (store_lower_output | current_data);
+            timer1_flag = 0; 
         }
     }
     return 0;

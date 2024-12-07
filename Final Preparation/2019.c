@@ -13,7 +13,7 @@
 unsigned int second_flag, input_data, data_placed, data_sum, global_count, total_data_arrivals, recent_data_arrivals;
 
 void Init(void) {
-    second_flag, input_data, data_placed, data_sum, global_count, total_data_arrivals, recent_data_arrivals = 0, 0, 0, 0, 0, 0, 0;  
+    second_flag = input_data = data_placed = data_sum = global_count = total_data_arrivals = recent_data_arrivals = 0;  
     *TIMER_STATUS = 0x0; 
     *TIMER_START_LO = (6250000 & 0xFFFF); 
     *TIMER_START_HI = (6250000 >> 16); 
