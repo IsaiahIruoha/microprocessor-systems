@@ -60,6 +60,7 @@ void interrupt_handler(void) {
 }
 
 int main (void) {
+    Init(); 
     unsigned int previous = 0; 
     while(1) {
         if (timer1_flag) {

@@ -66,6 +66,7 @@ void interrupt_handler(void) {
 }
 
 int main(void) {
+    Init(); 
     unsigned int average_data_arrivals = 0; 
     while (1) {
         if (data_placed) {
