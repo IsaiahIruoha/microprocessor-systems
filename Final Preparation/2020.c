@@ -25,7 +25,7 @@ void Init(void) {
     *TIMER_START_HI = (12500000 >> 16);    // Set high 16 bits
 
     // Initialize output port
-    *OUTPUT_PORT = 0x3;
+    *OUTPUT_PORT = 0xC0;
 
     // Enable interrupts
     NIOS2_WRITE_IENABLE(0x1); // Enable timer interrupt
@@ -49,7 +49,7 @@ void HandleTimer(void) {
     interrupt_count += 1; // Increment interrupt counter
 
     // Update output port
-    *OUTPUT_PORT = (0x3 << led_index);
+    *OUTPUT_PORT = (0xc0 >> (led_index*2));
     if (led_index == 3) {
         second_flag = 1; // Set second flag every 4 interrupts
     }

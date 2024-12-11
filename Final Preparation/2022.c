@@ -61,9 +61,9 @@ void interrupt_handler(void){
 
 int main(void){
     Init(); 
-    unsigned int previous_data = 0; 
-    unsigned int current_data = 0;
+    unsigned int previous_data = 0;
     unsigned int store_lower_output = 0;
+    volatile unsigned int current_data = 0;
     while(1){
         if(timer1_flag) {
             previous_data = current_data;

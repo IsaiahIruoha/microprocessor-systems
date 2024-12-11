@@ -80,7 +80,7 @@ int main(void) {
             PrintChar('\b');
             if (currentTemp > 102)
                 PrintChar('H');
-            else if (currentTemp <= 102)
+            else if (currentTemp <= 102 && currentTemp >= 98)
                 PrintChar('-');
             else if (currentTemp < 98)
                 PrintChar('L');
